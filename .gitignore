@@ -23,3 +23,12 @@ go.work.sum
 
 # env file
 .env
+.calva/
+.clj-kondo/
+.lsp/
+cmd/.DS_Store
+pkg/.DS_Store
+.vscode/
+.idea/
+
+
