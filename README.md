@@ -122,4 +122,72 @@ The pod stores your session in a SQLite database file (`whatsapp.db`) in the cur
 
 ## License
 
-MIT 
+MIT
+
+## Deployment
+
+### Building and Releasing
+
+This pod uses GitHub Actions to automatically build and release for multiple platforms. To create a new release:
+
+1. Tag your commit with a version number:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+2. The GitHub Action will automatically:
+   - Build the pod for multiple platforms (Linux, macOS, Windows)
+   - Create a GitHub release with all binaries
+   - Generate the necessary `pod.json` manifest
+
+### Adding to Babashka Pod Registry
+
+To add this pod to the [Babashka Pod Registry](https://github.com/babashka/pod-registry):
+
+1. Fork the pod-registry repository
+2. Add your pod information to `pod-registry.json`:
+```json
+{
+  "bb-whatsapp-pod": {
+    "name": "bb-whatsapp-pod",
+    "description": "A Babashka pod for interacting with WhatsApp",
+    "url": "https://github.com/kbosompem/bb-whatsapp-pod",
+    "latest": {
+      "version": "1.0.0",
+      "pod_version": "1.0.0"
+    }
+  }
+}
+```
+
+3. Create a pull request to the pod-registry repository
+
+### Manual Installation
+
+Users can install the pod manually by:
+
+1. Downloading the appropriate binary for their platform from the GitHub releases page
+2. Making it executable (Unix-like systems):
+```bash
+chmod +x bb-whatsapp-pod-*
+```
+
+3. Moving it to a directory in their PATH or using it from the current directory
+
+### Version Updates
+
+When releasing a new version:
+
+1. Update version numbers in:
+   - `pod.json`
+   - Documentation
+   - Submit a PR to update the pod-registry
+
+2. Create a new git tag and push:
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+3. The GitHub Action will handle the rest of the release process 

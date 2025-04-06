@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            artifact_name: bb-whatsapp-pod-linux-amd64
+          - os: linux
+            arch: arm64
+            artifact_name: bb-whatsapp-pod-linux-arm64
+          - os: darwin
+            arch: amd64
+            artifact_name: bb-whatsapp-pod-darwin-amd64
+          - os: darwin
+            arch: arm64
+            artifact_name: bb-whatsapp-pod-darwin-arm64
+          - os: windows
+            arch: amd64
+            artifact_name: bb-whatsapp-pod-windows-amd64.exe
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          go build -o ${{ matrix.artifact_name }} ./cmd/bb-whatsapp-pod
+
+      - name: Generate pod.json
+        run: |
+          cat > pod.json << EOF
+          {
+            "pod": {
+              "name": "bb-whatsapp-pod",
+              "version": "${GITHUB_REF#refs/tags/v}",
+              "description": "A Babashka pod for interacting with WhatsApp",
+              "platforms": {
+                "linux/amd64": {
+                  "binary": "bb-whatsapp-pod-linux-amd64"
+                },
+                "linux/arm64": {
+                  "binary": "bb-whatsapp-pod-linux-arm64"
+                },
+                "darwin/amd64": {
+                  "binary": "bb-whatsapp-pod-darwin-amd64"
+                },
+                "darwin/arm64": {
+                  "binary": "bb-whatsapp-pod-darwin-arm64"
+                },
+                "windows/amd64": {
+                  "binary": "bb-whatsapp-pod-windows-amd64.exe"
+                }
+              }
+            }
+          }
+          EOF
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
+
+      - name: Create Release
+        if: matrix.os == 'linux' && matrix.arch == 'amd64'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bb-whatsapp-pod-*
+            pod.json
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
