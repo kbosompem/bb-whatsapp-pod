@@ -32,3 +32,5 @@ pkg/.DS_Store
 .idea/
 bb-whatsapp-pod
 .DS_Store
+whatsapp.db
+pod.log
