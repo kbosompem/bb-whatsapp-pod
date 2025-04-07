@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     name: Build and Release
@@ -29,27 +33,30 @@ jobs:
             artifact_name: bb-whatsapp-pod-windows-amd64.exe
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+          check-latest: true
 
       - name: Build
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: |
-          go build -o ${{ matrix.artifact_name }} ./cmd/bb-whatsapp-pod
+          go build -v -o ${{ matrix.artifact_name }} ./cmd/bb-whatsapp-pod
 
       - name: Generate pod.json
         run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
           cat > pod.json << EOF
           {
             "pod": {
               "name": "bb-whatsapp-pod",
-              "version": "${GITHUB_REF#refs/tags/v}",
+              "version": "${VERSION}",
               "description": "A Babashka pod for interacting with WhatsApp",
               "platforms": {
                 "linux/amd64": {
@@ -72,20 +79,38 @@ jobs:
           }
           EOF
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}
+          path: |
+            ${{ matrix.artifact_name }}
+            pod.json
+          if-no-files-found: error
+          retention-days: 5
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: List files
+        run: ls -R
+
+      - name: Move artifacts to root
+        run: |
+          mkdir -p release
+          find . -type f -name "bb-whatsapp-pod-*" -exec mv {} release/ \;
+          find . -type f -name "pod.json" -exec mv {} release/ \;
 
       - name: Create Release
-        if: matrix.os == 'linux' && matrix.arch == 'amd64'
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            bb-whatsapp-pod-*
-            pod.json
+          files: release/*
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
