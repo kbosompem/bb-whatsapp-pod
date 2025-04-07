@@ -14,6 +14,12 @@ A Babashka pod for interacting with WhatsApp, allowing Babashka scripts to send 
 
 - [Babashka](https://github.com/babashka/babashka#installation)
 - Go 1.17+
+- qrencode (for displaying QR codes in terminal)
+  - macOS: `brew install qrencode`
+  - Ubuntu/Debian: `sudo apt-get install qrencode`
+  - Fedora: `sudo dnf install qrencode`
+  - Windows: Available through [Chocolatey](https://chocolatey.org/): `choco install qrencode`
+  - From source: [libqrencode](https://github.com/fukuchi/libqrencode)
 
 ## Installation
 
@@ -42,13 +48,26 @@ go build -o bb-whatsapp-pod ./cmd/bb-whatsapp-pod
 
 ### Logging in to WhatsApp
 
-The pod generates a QR code that you can scan with your WhatsApp mobile app to log in:
+The pod generates a QR code that you can scan with your WhatsApp mobile app to log in. Make sure you have `qrencode` installed to see the QR code in your terminal:
 
 ```clojure
-(def login-result (wa/login))
-;; Display the QR code in terminal
-(println (:qr_code login-result))
+(let [login-result (wa/login)]
+  (when (= (:status login-result) "qr-pending")
+    (println "--- QR CODE ---")
+    (-> (process ["qrencode" "-t" "ANSI256" "-o" "-" (:qr_code login-result)] {:out :inherit})
+        deref)
+    (println "---------------")
+    (println "\nPlease scan the QR code string above using WhatsApp on your phone (Link a device).")
+    (println "Press Enter here after you have scanned the QR code...")
+    (read-line)
+    (println "Checking status after scanning...")))
 ```
+
+If you don't see the QR code properly in your terminal:
+- Ensure `qrencode` is installed and available in your PATH
+- Try adjusting your terminal font size or window width
+- Use a terminal that supports Unicode characters
+- For Windows users: Use Windows Terminal or a modern terminal emulator
 
 ### Checking Status
 
@@ -94,6 +113,14 @@ If you encounter issues with the pod connecting to WhatsApp servers:
 - Delete the `whatsapp.db` file and try logging in again
 - Ensure your WhatsApp app is up to date
 
+### QR Code Display Issues
+If the QR code doesn't display correctly:
+- Verify `qrencode` is installed: `qrencode --version`
+- Try running `qrencode -t ANSI "test"` to test QR code generation
+- Use a monospace font in your terminal
+- Ensure your terminal window is wide enough
+- For Windows: Use Windows Terminal instead of cmd.exe
+
 ### Pod Communication Issues
 If the pod fails to load or communicate with Babashka:
 - Ensure you've built the pod with the correct Go version
@@ -123,71 +150,3 @@ The pod stores your session in a SQLite database file (`whatsapp.db`) in the cur
 ## License
 
 MIT
-
-## Deployment
-
-### Building and Releasing
-
-This pod uses GitHub Actions to automatically build and release for multiple platforms. To create a new release:
-
-1. Tag your commit with a version number:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-2. The GitHub Action will automatically:
-   - Build the pod for multiple platforms (Linux, macOS, Windows)
-   - Create a GitHub release with all binaries
-   - Generate the necessary `pod.json` manifest
-
-### Adding to Babashka Pod Registry
-
-To add this pod to the [Babashka Pod Registry](https://github.com/babashka/pod-registry):
-
-1. Fork the pod-registry repository
-2. Add your pod information to `pod-registry.json`:
-```json
-{
-  "bb-whatsapp-pod": {
-    "name": "bb-whatsapp-pod",
-    "description": "A Babashka pod for interacting with WhatsApp",
-    "url": "https://github.com/kbosompem/bb-whatsapp-pod",
-    "latest": {
-      "version": "1.0.0",
-      "pod_version": "1.0.0"
-    }
-  }
-}
-```
-
-3. Create a pull request to the pod-registry repository
-
-### Manual Installation
-
-Users can install the pod manually by:
-
-1. Downloading the appropriate binary for their platform from the GitHub releases page
-2. Making it executable (Unix-like systems):
-```bash
-chmod +x bb-whatsapp-pod-*
-```
-
-3. Moving it to a directory in their PATH or using it from the current directory
-
-### Version Updates
-
-When releasing a new version:
-
-1. Update version numbers in:
-   - `pod.json`
-   - Documentation
-   - Submit a PR to update the pod-registry
-
-2. Create a new git tag and push:
-```bash
-git tag v1.0.1
-git push origin v1.0.1
-```
-
-3. The GitHub Action will handle the rest of the release process 

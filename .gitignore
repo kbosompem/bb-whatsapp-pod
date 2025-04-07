@@ -34,3 +34,4 @@ bb-whatsapp-pod
 .DS_Store
 whatsapp.db
 pod.log
+Deployment.md
