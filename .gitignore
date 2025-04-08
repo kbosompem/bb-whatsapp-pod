@@ -35,3 +35,6 @@ bb-whatsapp-pod
 whatsapp.db
 pod.log
 Deployment.md
+
+# Test artifacts
+test_artifacts/

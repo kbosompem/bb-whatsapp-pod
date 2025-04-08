@@ -34,6 +34,44 @@ type DescribeResponse struct {
 	Namespaces []Namespace "namespaces"
 }
 
+// Add new operations for group functionality
+var whatsappNamespace = Namespace{
+	Name: "pod.whatsapp",
+	Vars: []Var{
+		{Name: "login", Code: "Login"},
+		{Name: "logout", Code: "Logout"},
+		{Name: "status", Code: "Status"},
+		{Name: "send-message", Code: "SendMessage"},
+		{Name: "get-groups", Code: "GetGroups"},
+		{Name: "send-group-message", Code: "SendGroupMessage"},
+		{Name: "upload", Code: "Upload"},
+		{Name: "send-image", Code: "SendImage"},
+		{Name: "send-document", Code: "SendDocument"},
+		{Name: "send-video", Code: "SendVideo"},
+		{Name: "send-audio", Code: "SendAudio"},
+		{Name: "get-contact-info", Code: "GetContactInfo"},
+		{Name: "get-profile-picture", Code: "GetProfilePicture"},
+		{Name: "set-status", Code: "SetStatus"},
+		{Name: "get-status", Code: "GetStatus"},
+		{Name: "set-presence", Code: "SetPresence"},
+		{Name: "subscribe-presence", Code: "SubscribePresence"},
+		{Name: "get-chat-history", Code: "GetChatHistory"},
+		{Name: "get-unread-messages", Code: "GetUnreadMessages"},
+		{Name: "mark-message-as-read", Code: "MarkMessageAsRead"},
+		{Name: "delete-message", Code: "DeleteMessage"},
+		{Name: "create-group", Code: "CreateGroup"},
+		{Name: "leave-group", Code: "LeaveGroup"},
+		{Name: "get-group-invite-link", Code: "GetGroupInviteLink"},
+		{Name: "join-group-with-link", Code: "JoinGroupWithLink"},
+		{Name: "set-group-name", Code: "SetGroupName"},
+		{Name: "set-group-topic", Code: "SetGroupTopic"},
+		{Name: "add-group-participants", Code: "AddGroupParticipants"},
+		{Name: "remove-group-participants", Code: "RemoveGroupParticipants"},
+		{Name: "promote-group-participants", Code: "PromoteGroupParticipants"},
+		{Name: "demote-group-participants", Code: "DemoteGroupParticipants"},
+	},
+}
+
 type InvokeResponse struct {
 	Id     string   "id"
 	Value  string   "value" // stringified json response

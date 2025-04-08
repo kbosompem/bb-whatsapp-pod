@@ -107,6 +107,10 @@ func handleDescribe() *babashka.DescribeResponse {
 					{Name: "logout"},
 					{Name: "status"},
 					{Name: "send-message"},
+					{Name: "get-groups"},
+					{Name: "send-group-message"},
+					{Name: "upload"},
+					{Name: "send-image"},
 				},
 			},
 		},
@@ -181,6 +185,50 @@ func handleInvoke(msg babashka.Message) (value string, errMsg string) {
 			} else {
 				log.Printf("Calling client.SendMessage(%s, ...)", phone)
 				result, invokeErr = client.SendMessage(phone, message)
+			}
+		}
+	case "get-groups":
+		log.Println("Calling client.GetGroups()...")
+		result, invokeErr = client.GetGroups()
+	case "send-group-message":
+		log.Println("Handling send-group-message...")
+		if len(args) != 2 {
+			invokeErr = fmt.Errorf("send-group-message expects 2 arguments (group-jid, message), got %d", len(args))
+		} else {
+			groupJID, okJID := args[0].(string)
+			message, okMsg := args[1].(string)
+			if !okJID || !okMsg {
+				invokeErr = fmt.Errorf("send-group-message arguments must be strings")
+			} else {
+				log.Printf("Calling client.SendGroupMessage(%s, ...)", groupJID)
+				result, invokeErr = client.SendGroupMessage(groupJID, message)
+			}
+		}
+	case "upload":
+		if len(args) != 2 {
+			invokeErr = fmt.Errorf("upload requires 2 arguments: file-path and mime-type")
+		} else {
+			filePath, ok1 := args[0].(string)
+			mimeType, ok2 := args[1].(string)
+			if !ok1 || !ok2 {
+				invokeErr = fmt.Errorf("upload arguments must be strings")
+			} else {
+				log.Printf("Calling client.Upload(%s, %s)", filePath, mimeType)
+				result, invokeErr = client.Upload(filePath, mimeType)
+			}
+		}
+	case "send-image":
+		if len(args) != 3 {
+			invokeErr = fmt.Errorf("send-image requires 3 arguments: recipient, file-path, and caption")
+		} else {
+			recipient, ok1 := args[0].(string)
+			filePath, ok2 := args[1].(string)
+			caption, ok3 := args[2].(string)
+			if !ok1 || !ok2 || !ok3 {
+				invokeErr = fmt.Errorf("send-image arguments must be strings")
+			} else {
+				log.Printf("Calling client.SendImage(%s, %s, %s)", recipient, filePath, caption)
+				result, invokeErr = client.SendImage(recipient, filePath, caption)
 			}
 		}
 	default:

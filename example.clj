@@ -26,27 +26,43 @@
   (if (= (:status status-result) "logged-in")
     (do
       (println "\nSuccessfully logged in!")
-      (println "\nPlease enter your WhatsApp phone number (country code without '+', e.g., 14155551234) to send a test message:")
-      (let [phone-number (str/trim (read-line))]
-        (if (re-matches #"^\d+$" phone-number)
+
+      ;; List groups
+      (println "\nFetching your groups...")
+      (let [groups-result (wa/get-groups)]
+        (if (:success groups-result)
           (do
-            (println "Sending test message to" phone-number)
-            (let [send-result (wa/send-message phone-number (str "Hello from Babashka pod! Timestamp: " (java.time.Instant/now)))]
-              (println "Send message result:" send-result)))
-          (println "Invalid phone number format entered.")))
+            (println "\nYour groups:")
+            (doseq [group (:groups groups-result)]
+              (println "\nGroup:" (:name group))
+              (println "JID:" (:jid group))
+              (println "Participants:" (:participants group)))
 
-      (println "\nLogging out...")
-      (let [logout-result (wa/logout)]
-        (println "Logout result:" logout-result))
+            ;; Example of sending a message to a group
+            (println "\nWould you like to send a message to a group? (y/n)")
+            (when (= (str/trim (read-line)) "y")
+              (println "\nEnter the group JID (e.g., 1234567890@g.us):")
+              (let [group-jid (str/trim (read-line))
+                    _ (println "Enter the message you want to send:")
+                    message (str/trim (read-line))]
+                (println "Sending message to group" group-jid)
+                (let [send-result (wa/send-group-message group-jid message)]
+                  (println "Send message result:" send-result)))))
+          (println "Failed to fetch groups:" (:message groups-result))))
 
-      (println "\nChecking status after logout...")
-      (let [final-status (wa/status)]
-        (println "Final status:" final-status)))
+      ;; Example of sending a message to a contact
+      (println "\nWould you like to send a message to a contact? (y/n)")
+      (when (= (str/trim (read-line)) "y")
+        (println "\nPlease enter your WhatsApp phone number (country code without '+', e.g., 14155551234) to send a test message:")
+        (let [phone-number (str/trim (read-line))]
+          (if (re-matches #"^\d+$" phone-number)
+            (do
+              (println "Sending test message to" phone-number)
+              (let [send-result (wa/send-message phone-number (str "Hello from Babashka pod! Timestamp: " (java.time.Instant/now)))]
+                (println "Send message result:" send-result)))
+            (println "Invalid phone number format entered.")))))
 
     (println "\nLogin was not successful. Skipping message sending and logout.")))
 
 (println "\nExample script finished.")
-
-
-
 (shutdown-agents) 
