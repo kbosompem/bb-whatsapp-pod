@@ -38,3 +38,5 @@ Deployment.md
 
 # Test artifacts
 test_artifacts/
+myexamples/
+test.clj
